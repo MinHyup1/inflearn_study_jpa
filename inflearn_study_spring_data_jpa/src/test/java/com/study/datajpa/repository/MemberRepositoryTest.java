@@ -198,4 +198,91 @@ class MemberRepositoryTest {
             System.out.println("member.team = " + member.getTeam().getName());
         }
     }
+
+    @Test
+    public void queryHint() {
+        //given
+        Member member1 = memberRepository.save(new Member("member1", 10));
+        em.flush();
+        em.clear();
+
+        //when
+        Member findMember = memberRepository.findReadOnlyByUserName(member1.getUserName());
+        findMember.setUserName("member2");
+
+        em.flush();
+
+    }
+
+    @Test
+    public void callCustom() {
+        List<Member> result = memberRepository.findMemberCustom();
+    }
+
+    @Test
+    public void queryByExample() {
+        Team teamA = new Team("teamA");
+        teamRepository.save(teamA);
+
+        Member member1 = new Member("member1", 0, teamA);
+        Member member2 = new Member("member2", 10, teamA);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        //Probe
+        Member member = new Member("member1");
+        ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreCase("age");
+        Example<Member> example = Example.of(member,matcher);
+
+        List<Member> members = memberRepository.findAll(example);
+        assertThat(members.get(0).getUserName()).isEqualTo("member1");
+
+    }
+
+    @Test
+    public void projections() {
+        //given
+        Team teamA = new Team("teamA");
+        teamRepository.save(teamA);
+
+        Member member1 = new Member("member1", 0, teamA);
+        Member member2 = new Member("member2", 0, teamA);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        List<UserNameOnly> result = memberRepository.findProjectionsByUserName("member1");
+
+        result.forEach(
+                item -> System.out.println(item.getUserName())
+        );
+
+    }
+
+    @Test
+    public void nativeQuery() {
+        //given
+        Team teamA = new Team("teamA");
+        teamRepository.save(teamA);
+
+        Member member1 = new Member("member1", 0, teamA);
+        Member member2 = new Member("member2", 0, teamA);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        Member member11 = memberRepository.findByNativeQuery("member1");
+        System.out.println(member11);
+
+    }
 }
