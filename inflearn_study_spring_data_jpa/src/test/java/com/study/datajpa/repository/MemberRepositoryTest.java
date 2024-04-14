@@ -283,6 +283,23 @@ class MemberRepositoryTest {
         //when
         Member member11 = memberRepository.findByNativeQuery("member1");
         System.out.println(member11);
+    }
+    @Test
+    public void nativeQuery2() {
+        //given
+        Team teamA = new Team("teamA");
+        teamRepository.save(teamA);
 
+        Member member1 = new Member("member1", 0, teamA);
+        Member member2 = new Member("member2", 0, teamA);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        Page<MemberProjection> result = memberRepository.findByNativeProjection(PageRequest.of(0, 10));
+        System.out.println(result.getContent());
     }
 }
